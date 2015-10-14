@@ -105,12 +105,14 @@
                             (arr[i+1].lat+arr[i].lat);
                     },0);
                     
+                    points.pop();
                     if (dir >= 0){ //clockwise
-                        boundaries.push([points]);
+                        boundaries.push([points.slice()]);
                     }
                     else{  //counter clockwise (hole)
-                        boundaries[boundaries.length -1].push(points);
+                        boundaries[boundaries.length-1].push(points.slice());
                     }
+                    points = [];
                 }
             }
             
@@ -123,11 +125,12 @@
                     (arr[i+1].lat + arr[i].lat);
             },0);
             
+            points.pop();
             if (dir >=  0){ //clockwise
-                boundaries.push([points]);
+                boundaries.push([points.slice()]);
             }
             else{  //counter clockwise (hole)
-                boundaries[boundaries.length -1].push(points);
+                boundaries[boundaries.length-1].push(points.slice());
             }
             
             L.multiPolygon(boundaries, {color: color, 
