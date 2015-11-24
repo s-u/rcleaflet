@@ -38,9 +38,50 @@ lpoints <- function(lat, lon, col="black", bg="transparent", cex=1, lwd=1, ..., 
     cex <- cex * 72
     col <- .mapColor(col, ls[1])
     bg <- .mapColor(bg, ls[1])
-    if (length(cex) > 1 && length(cex) != ls[1]) cex <- rep(cex, length.out=ls[1])
-    if (length(lwd) > 1 && length(lwd) != ls[1]) lwd <- rep(lwd, length.out=ls[1])
+    if (length(cex) > 1 && length(cex) != max(ls)) cex <- rep(cex, length.out=max(ls))
+    if (length(lwd) > 1 && length(lwd) != max(ls)) lwd <- rep(lwd, length.out=max(ls))
     .cache$ocaps$points(map$div, lat, lon, col$col, bg$col, col$alpha, bg$alpha, cex, lwd)
+    invisible(map)
+}
+
+# An R lty has to become an SVG stroke-dasharray
+# This is going to be imperfect (to say the least)
+devLtyToSVG <- function(lty, lwd) {
+    # Convert lty to numeric vec
+    numlty <- switch(lty,
+                     solid = 0,
+                     # These numbers taken from ?par
+                     dashed = c(4, 4),
+                     dotted = c(1, 3),
+                     dotdash = c(1, 3, 4, 3),
+                     longdash = c(7, 3),
+                     twodash = c(2, 2, 6, 2),
+                     # Otherwise we're a hex string
+                     as.numeric(as.hexmode(strsplit(lty, "")[[1]])))
+    # Scale by lwd
+    scaledlty <- numlty * lwd
+    # Convert to SVG stroke-dasharray string
+    paste(ifelse(scaledlty == 0,
+                 "none",
+                 round(scaledlty, 2)),
+          collapse=",")
+}
+
+lsegments <- function(lat1, lon1, lat2, lon2, col = "black", lty = 1, lwd = 1, map=.cache$last.map){
+  if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
+    ls <- c(length(lat1), length(lon1), length(lat2), length(lon2))
+    
+    if (sum(abs(diff(ls)))) { ## recycle
+       lat1 <- rep(lat1, length.out=max(ls))
+       lon1 <- rep(lon1, length.out=max(ls))
+       lat2 <- rep(lat2, length.out=max(ls))
+       lon2 <- rep(lon2, length.out=max(ls))
+    }
+    col <- .mapColor(col, 1)
+    if (length(lty) > 1 && length(lty) != max(ls)) lty <- rep(lty, length.out=max(ls))
+    if (length(lwd) > 1 && length(lwd) != max(ls)) lwd <- rep(lwd, length.out=max(ls))
+  
+    .cache$ocaps$segments(map$div, lat1, lon1, lat2, lon2, col$col, devLtyToSVG(lty, lwd), lwd)
     invisible(map)
 }
 
@@ -67,6 +108,6 @@ lpolygon <- function(lat, lon, color='red', fillColor=color,
     
     col <- .mapColor(color, 1)
     fill <- .mapColor(fillColor, 1)
-    .cache$ocaps$polygon(map$div, lat, lon, col$col,col$alpha, fill$col, fill$alpha,weight)
+    .cache$ocaps$polygon(map$div, lat, lon, col$col, col$alpha, fill$col, fill$alpha, weight)
     invisible(map)
 }

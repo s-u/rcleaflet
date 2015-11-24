@@ -1,3 +1,5 @@
+/*global $ L require */
+
 (function(){
     // Load CSS and JS
     var fileref=document.createElement("link");
@@ -39,6 +41,7 @@
                 initMap(div, lat, lon, zoom, k);
             }
         },
+        
         points:function(div, lat, lon, col, fill, colA, fillA, rad, lwd, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
@@ -55,6 +58,26 @@
             k(null, true);
         },
 
+        segments:function(div, lat1, lon1, lat2, lon2, col, lty, lwd, k) {
+            var L = window.rcleaflet[div].L;
+            var map = window.rcleaflet[div].map;
+
+            if(!lat1.length && !lon1.length && 
+               !lat2.length && !lon2.length && !lwd.length){ //special case for a single element
+                lat1 = [lat1];
+                lon1 = [lon1];
+                lat2 = [lat2];
+                lon2 = [lon2];
+                lwd = [lwd];
+            }
+            for(var i=0; i < lat1.length; i++)
+                L.polyline([[lat1[i],lon1[i]],[lat2[i],lon2[i]]], { color: col.charAt ? col : col[i],
+                                                                    dashArray: lty.charAt ? lty : lty[i],
+                                                                    weight: lwd.length ? lwd[i] : lwd
+                                                                  }).addTo(map);
+            k(null, true);
+        },
+
         markers:function(div, lat, lon, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
@@ -66,18 +89,11 @@
             k(null, true);
         },
 
-        segments:function(div, lat1, lon1, lat2, lon2, col, k) {
-            var L = window.rcleaflet[div].L;
-            var map = window.rcleaflet[div].map;
-            for(var i=0; i < lat1.length; i++)
-                L.polyline([[lat1[i],lon1[i]],[lat2[i],lon2[i]]], {color: col, weight:1}).addTo(map);
-            k(null, true);
-        },
-
         polyline:function(div, lat, lon, col, weight, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
             var points = [];
+
             for(var i = 0; i < lat.length; i++)
                 points.push(L.latLng(lat[i], lon[i]));
             L.polyline(points, {color: col, weight: weight}).addTo(map);
