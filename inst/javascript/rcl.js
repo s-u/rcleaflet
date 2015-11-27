@@ -5,12 +5,12 @@
     var fileref=document.createElement("link");
     fileref.setAttribute("rel", "stylesheet");
     fileref.setAttribute("type", "text/css");
-    fileref.setAttribute("href", 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.css');
+    fileref.setAttribute("href", 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css');
     document.getElementsByTagName( "head" )[0].appendChild( fileref );        
     
     require.config({
         paths: {
-            leaflet: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet'
+            leaflet: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet'
         },
         shim: {
             leaflet: {
@@ -155,6 +155,96 @@
                                         fillOpacity: fillOpacity, 
                                         weight: weight }).addTo(map);
             k(null, true);
-        }
+        },
+
+        animatePolyline: function(pl,lat, lon, durations,stepsize,delay){
+            stepsize = stepsize || 1000.0/30;
+            delay = delay || 1000;
+            
+            var s = this._genSteps(lat,lon,durations,stepsize);
+            
+            var start = window.performance.now();
+            var ll = pl.getLatLngs();            
+            var lastp = ll[ll.length-1];
+            ll.push(lastp);
+            pl.setLatLngs(ll); //dup the last point
+            var op = window.performance.now()-start;
+
+            //estimate the required time for setting the polyline 
+            stepsize -= op;
+            stepsize = Math.max(stepsize,0);
+            console.log(stepsize);
+            
+            window.setTimeout(function(){
+                var timer = window.setInterval(function(){
+                    var ll = pl.getLatLngs();            
+                    ll[ll.length-1]=s[0].shift();
+                    
+                    if (s[0].length < 1) { //last pt of the current interval
+                        ll.push(ll[ll.length-1]); //repeat the last pt;
+                        s.shift(); //remove the empty list
+                    }
+                    //set the new latlng
+                    pl.setLatLngs(ll);
+                    
+                    if (s.length < 1){
+                        window.clearInterval(timer);
+                        ll = pl.getLatLngs();
+                        ll.pop();
+                        pl.setLatLngs(ll);
+                        console.log(pl.getLatLngs());
+                    }            
+                },stepsize);
+            },delay);
+        },
+        
+        animateMarker: function (m,lat, lon, durations,stepsize,delay){
+            stepsize = stepsize || 1000.0/30;
+            delay = delay || 1000;
+            
+            var s = this._genSteps(lat,lon,durations,stepsize);
+            
+            var start = window.performance.now();
+            var ll = m.getLatLng();            
+            m.setLatLng(ll); //set position
+            var op = window.performance.now()-start;
+            
+            //estimate the required time for setting the polyline 
+            stepsize -= op;
+            stepsize = Math.max(stepsize,0);
+            console.log(stepsize);
+            
+            window.setTimeout(function(){
+                var timer = window.setInterval(function(){
+                    m.setLatLng(s[0].shift());
+                    
+                    if (s[0].length < 1) { //last pt of the current interval
+                        s.shift(); //remove the empty list
+                    }            
+                    if (s.length < 1){
+                        window.clearInterval(timer);
+                    }            
+                },stepsize);
+            },delay);
+        },
+
+        
+        _genSteps: function (lat, lon, durations, stepsize) {
+            var allsteps = [];
+            for(var i=0; i< lat.length-1; i++){
+                var s = Math.ceil(durations[i]/stepsize);
+                var d = L.latLng(lat[i+1]-lat[i],lon[i+1]-lon[i]);
+                d = L.latLng(d.lat/s,d.lng/s);
+                var steps = new Array(s);
+                for(var j=0; j < s-1; j++){
+                    steps[j] = L.latLng(lat[i]+d.lat*(j+1),lon[i]+d.lng*(j+1)); 
+                }
+                steps[s-1] = L.latLng(lat[i+1],lon[i+1]);
+                allsteps[i] = steps;
+            }
+            return allsteps;
+        }    
+
+
     };    
 })();
