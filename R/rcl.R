@@ -113,7 +113,8 @@ lpolygon <- function(lat, lon, color='red', fillColor=color,
 }
 
 #Animations
-lanimatedPolyline <- function(lat,lon,durations,stepsize,delay,
+lanimatedPolyline <- function(lat,lon,durations,maxpts=0,
+                              stepsize=33,delay=0,
                               map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
 
@@ -121,7 +122,7 @@ lanimatedPolyline <- function(lat,lon,durations,stepsize,delay,
     invisible(map)
 }
 
-lanimatedMarker <- function(lat,lon,durations,stepsize,delay,
+lanimatedMarker <- function(lat,lon,durations,stepsize=33,delay=0,
                             map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
 
