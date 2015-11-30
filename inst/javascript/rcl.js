@@ -116,17 +116,25 @@ function _genSteps (lat, lon, durations, stepsize) {
             k(null, true);
         },
         
-        markers:function(div, lat, lon, k) {
+        markers:function(div, lat, lon, popup,k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
-            if (lat.length) {
-                for (var i = 0; i < lat.length; i++){
-                    L.marker([lat[i], lon[i]]).addTo(map);
+            
+            if (!lat.length){ //make them arrays
+                lat = [lat];
+                lon = [lon];
+                popup = [popup];                
+            }
+
+
+            for (var i = 0; i < lat.length; i++){
+                var m = L.marker([lat[i], lon[i]]);
+                if (popup[i]){
+                    m.bindPopup(popup[i]);
                 }
+                m.addTo(map);
             }
-            else{
-                L.marker([lat, lon]).addTo(map);
-            }
+
             k(null, true);
         },
 
@@ -143,7 +151,7 @@ function _genSteps (lat, lon, durations, stepsize) {
             k(null, true);
         },
 
-        polygon:function(div, lat, lon, color, opacity,
+        polygon:function(div, lat, lon, popup, color, opacity,
                          fillColor, fillOpacity, weight, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
@@ -192,11 +200,15 @@ function _genSteps (lat, lon, durations, stepsize) {
                 boundaries[boundaries.length-1].push(points.slice());
             }
 
-            L.multiPolygon(boundaries, {color: color,
+            var mp=L.multiPolygon(boundaries, {color: color,
                                         opacity: opacity,
                                         fillColor: fillColor,
                                         fillOpacity: fillOpacity,
-                                        weight: weight }).addTo(map);
+                                        weight: weight });
+            if(popup){
+                mp.bindPopup(popup);
+            }
+            mp.addTo(map);
             k(null, true);
         },
 

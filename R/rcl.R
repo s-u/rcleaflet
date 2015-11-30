@@ -59,7 +59,8 @@ devLtyToSVG <- function(lty, lwd) {
                      as.numeric(as.hexmode(strsplit(lty, "")[[1]])))
                                         # Scale by lwd
     scaledlty <- numlty * lwd
-                                        # Convert to SVG stroke-dasharray string
+                                        # Convert to SVG stroke-dasharray
+                                        # string
     paste(ifelse(scaledlty == 0,
                  "none",
                  round(scaledlty, 2)),
@@ -84,18 +85,18 @@ lsegments <- function(lat1, lon1, lat2, lon2, col = "black", lty = 1, lwd = 1, m
     invisible(map)
 }
 
-lmarkers <- function(lat, lon, map=.cache$last.map) {
+lmarkers <- function(lat, lon, popup=NULL, map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
     if (diff(ls)) { ## recycle
         lat <- rep(lat, length.out=max(ls))
         lon <- rep(lon, length.out=max(ls))
     }
-    .cache$ocaps$markers(map$div, lat, lon)
+    .cache$ocaps$markers(map$div, lat, lon, popup)
     invisible(map)
 }
 
-lpolygon <- function(lat, lon, color='red', fillColor=color,
+lpolygon <- function(lat, lon, popup=NULL, color='red', fillColor=color,
                      weight=5, map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
@@ -107,7 +108,7 @@ lpolygon <- function(lat, lon, color='red', fillColor=color,
 
     col <- .mapColor(color, 1)
     fill <- .mapColor(fillColor, 1)
-    .cache$ocaps$polygon(map$div, lat, lon, col$col, col$alpha,
+    .cache$ocaps$polygon(map$div, lat, lon, popup, col$col, col$alpha,
                          fill$col, fill$alpha, weight)
     invisible(map)
 }
