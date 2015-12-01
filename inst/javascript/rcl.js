@@ -129,7 +129,7 @@ function _genSteps (lat, lon, durations, stepsize) {
 
             for (var i = 0; i < lat.length; i++){
                 var m = L.marker([lat[i], lon[i]]);
-                if (popup[i]){
+                if (popup && popup[i]){
                     m.bindPopup(popup[i]);
                 }
                 m.addTo(map);
@@ -138,7 +138,8 @@ function _genSteps (lat, lon, durations, stepsize) {
             k(null, true);
         },
 
-        polyline:function(div, lat, lon, col, weight, k) {
+        polyline:function(div, lat, lon, col, lty, lwd, k) {
+
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
             var points = [];
@@ -146,8 +147,13 @@ function _genSteps (lat, lon, durations, stepsize) {
             for(var i = 0; i < lat.length; i++){
                 points.push(L.latLng(lat[i], lon[i]));
             }
-            
-            L.polyline(points, {color: col, weight: weight}).addTo(map);
+            var opts={
+                color: col.charAt ? col : col[i],
+                dashArray: lty.charAt ? lty : lty[i],
+                weight: lwd.length ? lwd[i] : lwd
+            };                
+
+            L.polyline(points, opts).addTo(map);
             k(null, true);
         },
 

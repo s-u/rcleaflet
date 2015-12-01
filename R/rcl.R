@@ -85,6 +85,28 @@ lsegments <- function(lat1, lon1, lat2, lon2, col = "black", lty = 1, lwd = 1, m
     invisible(map)
 }
 
+
+
+lpolyline <- function(lat, lon, col = "black", lty = 1, lwd = 1,
+                      map=.cache$last.map){
+    if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
+    ls <- c(length(lat), length(lon))
+
+    if (sum(abs(diff(ls)))) { ## recycle
+        lat <- rep(lat, length.out=max(ls))
+        lon <- rep(lon, length.out=max(ls))
+    }
+    col <- .mapColor(col, 1)
+    if (length(lty) > 1 && length(lty) != max(ls)) lty <- rep(lty, length.out=max(ls))
+    if (length(lwd) > 1 && length(lwd) != max(ls)) lwd <- rep(lwd, length.out=max(ls))
+
+    .cache$ocaps$polyline(map$div, lat, lon, col$col,
+                          devLtyToSVG(lty, lwd), lwd)
+    invisible(map)
+}
+
+
+
 lmarkers <- function(lat, lon, popup=NULL, map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
@@ -119,7 +141,8 @@ lanimatedPolyline <- function(lat,lon,durations,maxpts=0,
                               map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
 
-    .cache$ocaps$animatedPolyline(map$div,lat,lon,durations,stepsize,delay)
+    .cache$ocaps$animatedPolyline(map$div,lat,lon,durations,maxpts,
+                                  stepsize,delay)
     invisible(map)
 }
 
