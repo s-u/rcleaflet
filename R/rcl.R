@@ -26,7 +26,8 @@ lmap <- function(lat, lon, zoom=10, where, width=800, height=600) {
     l
 }
 
-lpoints <- function(lat, lon, col="black", bg="transparent", cex=1, lwd=1, ..., map=.cache$last.map) {
+lpoints <- function(lat, lon, col="black", bg="transparent", cex=1, lwd=1,
+                    ..., map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
     if (diff(ls)) { ## recycle
@@ -107,14 +108,15 @@ lpolyline <- function(lat, lon, col = "black", lty = 1, lwd = 1,
 
 
 
-lmarkers <- function(lat, lon, popup=NULL, map=.cache$last.map) {
+lmarkers <- function(lat, lon, popup=NULL, clickfunc=NULL,
+                     map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
     if (diff(ls)) { ## recycle
         lat <- rep(lat, length.out=max(ls))
         lon <- rep(lon, length.out=max(ls))
     }
-    .cache$ocaps$markers(map$div, lat, lon, popup)
+    .cache$ocaps$markers(map$div, lat, lon, popup, clickfunc)
     invisible(map)
 }
 

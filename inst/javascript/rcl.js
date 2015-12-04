@@ -1,11 +1,14 @@
 /*global $ L require */
 
 // Load CSS and JS
-var fileref=document.createElement("link");
-fileref.setAttribute("rel", "stylesheet");
-fileref.setAttribute("type", "text/css");
-fileref.setAttribute("href", 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css');
-document.getElementsByTagName( "head" )[0].appendChild( fileref );
+function loadCss(filename){
+    var fileref=document.createElement("link");
+    fileref.setAttribute("rel", "stylesheet");
+    fileref.setAttribute("type", "text/css");
+    fileref.setAttribute("href", filename);
+    document.getElementsByTagName( "head" )[0].appendChild( fileref );
+}
+
 
 require.config({
     paths: {
@@ -19,10 +22,11 @@ require.config({
 });
 
 function initMap(L, div, lat, lon, zoom, k) {
+    loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css');
     $(div).resizable({stop: function() { map.invalidateSize(); }});
     var map = L.map($(div)[0]).setView([lat,lon], zoom);
-    L.tileLayer('https://rcloud.research.att.com/tiles-light/{z}/{x}/{y}.png',
-                {maxZoom:18}).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+        .addTo(map);
     
     if (!window.rcleaflet) window.rcleaflet = {};
     window.rcleaflet[div] = { "L":L, "map":map };
@@ -116,7 +120,7 @@ function _genSteps (lat, lon, durations, stepsize) {
             k(null, true);
         },
         
-        markers:function(div, lat, lon, popup,k) {
+        markers:function(div, lat, lon, popup,clickfunc,k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
             
@@ -133,6 +137,14 @@ function _genSteps (lat, lon, durations, stepsize) {
                     m.bindPopup(popup[i]);
                 }
                 m.addTo(map);
+            }
+
+            if(clickfunc){
+                m.on('click',function(){
+                    clickfunc(function(err,res){
+                        console.log('complete callback',res);
+                    });
+                });
             }
 
             k(null, true);
