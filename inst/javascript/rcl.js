@@ -71,26 +71,21 @@ function _genSteps (lat, lon, durations, stepsize) {
         points:function(div, lat, lon, col, fill, colA, fillA, rad, lwd, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
-            if (lat.length) {
-                for (var i = 0; i < lat.length; i++){
-                    var opts =  {
-                        color: col.charAt ? col : col[i],
-                        fillColor: fill.charAt ? fill : fill[i],
-                        fillOpacity: fillA.length ? fillA[i] : fillA,
-                        opacity: colA.length ? colA[i] : colA,
-                        weight: lwd.length ? lwd[i] : lwd
-                    };
-                    L.circle([lat[i], lon[i]], rad, opts).addTo(map);
-                }
+            if (!lat.length) {
+                lat = [lat];
+                lon = [lon];
             }
-            else{
-                opts= {
-                    color: col,
-                    fillColor: fill,
-                    fillOpacity: fillA,
-                    opacity: colA
-                };                
-                L.circle([lat, lon], rad, opts).addTo(map);
+
+            for (var i = 0; i < lat.length; i++){
+                var opts =  {
+                    color: col.charAt ? col : col[i],
+                    fillColor: fill.charAt ? fill : fill[i],
+                    fillOpacity: fillA.length ? fillA[i] : fillA,
+                    opacity: colA.length ? colA[i] : colA,
+                    weight: lwd.length ? lwd[i] : lwd
+                };
+                var r = rad.length? rad[i]:rad; 
+                L.circle([lat[i], lon[i]], r , opts).addTo(map);
             }
             k(null, true);
         },
