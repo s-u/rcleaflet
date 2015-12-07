@@ -68,12 +68,14 @@ function _genSteps (lat, lon, durations, stepsize) {
             }
         },
 
-        points:function(div, lat, lon, col, fill, colA, fillA, rad, lwd, k) {
+        points:function(div, lat, lon, col, fill, colA, fillA, rad, lwd, 
+                        popup, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
             if (!lat.length) {
                 lat = [lat];
                 lon = [lon];
+                popup = [popup];
             }
 
             for (var i = 0; i < lat.length; i++){
@@ -85,7 +87,12 @@ function _genSteps (lat, lon, durations, stepsize) {
                     weight: lwd.length ? lwd[i] : lwd
                 };
                 var r = rad.length? rad[i]:rad; 
-                L.circle([lat[i], lon[i]], r , opts).addTo(map);
+                var c = L.circle([lat[i], lon[i]], r , opts);
+
+                if (popup && popup[i]){
+                    c.bindPopup(popup[i]);
+                }
+                c.addTo(map);
             }
             k(null, true);
         },
@@ -122,7 +129,7 @@ function _genSteps (lat, lon, durations, stepsize) {
             if (!lat.length){ //make them arrays
                 lat = [lat];
                 lon = [lon];
-                popup = [popup];                
+                popup = [popup];        
             }
 
 
@@ -145,7 +152,7 @@ function _genSteps (lat, lon, durations, stepsize) {
             k(null, true);
         },
 
-        polyline:function(div, lat, lon, col, lty, lwd, k) {
+        polyline:function(div, lat, lon, col, lty, lwd,k) {
 
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;

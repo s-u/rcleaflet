@@ -27,7 +27,7 @@ lmap <- function(lat, lon, zoom=10, where, width=800, height=600) {
 }
 
 lpoints <- function(lat, lon, col="black", bg="transparent", cex=1, lwd=1,
-                    ..., map=.cache$last.map) {
+                    popup=NULL,..., map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
     if (diff(ls)) { ## recycle
@@ -40,7 +40,8 @@ lpoints <- function(lat, lon, col="black", bg="transparent", cex=1, lwd=1,
     bg <- .mapColor(bg, ls[1])
     if (length(cex) > 1 && length(cex) != max(ls)) cex <- rep(cex, length.out=max(ls))
     if (length(lwd) > 1 && length(lwd) != max(ls)) lwd <- rep(lwd, length.out=max(ls))
-    .cache$ocaps$points(map$div, lat, lon, col$col, bg$col, col$alpha, bg$alpha, cex, lwd)
+    .cache$ocaps$points(map$div, lat, lon, col$col, bg$col, col$alpha,
+                        bg$alpha, cex, lwd, popup)
     invisible(map)
 }
 
