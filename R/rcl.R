@@ -109,7 +109,7 @@ lpolyline <- function(lat, lon, col = "black", lty = 1, lwd = 1,
 
 
 
-lmarkers <- function(lat, lon, popup=NULL, clickfunc=NULL,
+lmarkers <- function(lat, lon, popup=NULL, iconurl=NULL, clickfunc=NULL,
                      map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
@@ -117,7 +117,7 @@ lmarkers <- function(lat, lon, popup=NULL, clickfunc=NULL,
         lat <- rep(lat, length.out=max(ls))
         lon <- rep(lon, length.out=max(ls))
     }
-    .cache$ocaps$markers(map$div, lat, lon, popup, clickfunc)
+    .cache$ocaps$markers(map$div, lat, lon, popup, iconurl, clickfunc)
     invisible(map)
 }
 
