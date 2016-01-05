@@ -145,7 +145,7 @@ function _genSteps (lat, lon, durations, stepsize) {
             }
             
             for (var i = 0; i < lat.length; i++){
-                var myicon= L.Icon.Default();
+                var myicon= new L.Icon.Default();
                 if(iconurl && iconurl[i]){
                    myicon=L.icon({iconUrl:iconurl[i]});
                 }
