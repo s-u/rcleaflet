@@ -1,16 +1,22 @@
 .cache <- new.env(FALSE, emptyenv())
 
-lmap <- function(lat, lon, zoom=10, where, width=800, height=600) {
+lmap <- function(y, x, zoom=10, where, width=800, height=600,lat=y,lon=x) {
     if (missing(where)) {
         where <- paste0("rc_map_", as.integer(runif(1)*1e6))
-        rcloud.html.out(paste0("<div id='", where,"' style='width:", width, "px;height:", height, "px'></div>"))
+        rcloud.html.out(paste0("<div id='", where,"' style='width:",
+                               width, "px;height:", height, "px'></div>"))
         where <- paste0("#", where)
     }
     if (is.null(.cache$ocaps)) {
-        x <- paste(readLines(system.file("javascript", "rcl.js", package="rcleaflet"), warn=FALSE), collapse='\n')
+        x <- paste(readLines(system.file("javascript", "rcl.js",
+                                         package="rcleaflet"),
+                             warn=FALSE), collapse='\n')
         .cache$ocaps <- rcloud.install.js.module("rcleaflet", x, TRUE)
     }
-    .cache$last.map <- structure(list(div=.cache$ocaps$map(where, as.numeric(lat), as.numeric(lon), as.integer(zoom))),
+    .cache$last.map <- structure(list(div=.cache$ocaps$map(where,
+                                                           as.numeric(lat),
+                                                           as.numeric(lon),
+                                                           as.integer(zoom))),
                                  class="RCloudLeaflet")
 }
 
@@ -18,7 +24,8 @@ lmap <- function(lat, lon, zoom=10, where, width=800, height=600) {
 .mapColor <- function(col, n) {
     cc <- col2rgb(col, TRUE)
 
-    l <- list(col=substr(rgb(cc[1,], cc[2,], cc[3,], cc[4,],, 255), 1, 7), alpha=as.vector(cc[4,])/255)
+    l <- list(col=substr(rgb(cc[1,], cc[2,], cc[3,], cc[4,],, 255), 1, 7),
+              alpha=as.vector(cc[4,])/255)
     if (length(l$col) > 1 && length(l$col) != n) {
         l$col <- rep(l$col, length.out=n)
         l$alpha <- rep(l$alpha, length.out=n)
@@ -26,8 +33,8 @@ lmap <- function(lat, lon, zoom=10, where, width=800, height=600) {
     l
 }
 
-lpoints <- function(lat, lon, col="black", bg="transparent", cex=1, lwd=1,
-                    popup=NULL,..., map=.cache$last.map) {
+lpoints <- function(x,y,col="black", bg="transparent", cex=1, lwd=1,
+                    popup=NULL,..., lat=y,lon=x,map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
     if (diff(ls)) { ## recycle
@@ -38,8 +45,14 @@ lpoints <- function(lat, lon, col="black", bg="transparent", cex=1, lwd=1,
     cex <- cex * 72
     col <- .mapColor(col, ls[1])
     bg <- .mapColor(bg, ls[1])
-    if (length(cex) > 1 && length(cex) != max(ls)) cex <- rep(cex, length.out=max(ls))
-    if (length(lwd) > 1 && length(lwd) != max(ls)) lwd <- rep(lwd, length.out=max(ls))
+    if (length(cex) > 1 && length(cex) != max(ls)){
+        cex <- rep(cex, length.out=max(ls))
+    }
+
+    if (length(lwd) > 1 && length(lwd) != max(ls)){
+        lwd <- rep(lwd, length.out=max(ls))
+    }
+    
     .cache$ocaps$points(map$div, lat, lon, col$col, bg$col, col$alpha,
                         bg$alpha, cex, lwd, popup)
     invisible(map)
@@ -48,28 +61,27 @@ lpoints <- function(lat, lon, col="black", bg="transparent", cex=1, lwd=1,
 # An R lty has to become an SVG stroke-dasharray
 # This is going to be imperfect (to say the least)
 devLtyToSVG <- function(lty, lwd) {
-                                        # Convert lty to numeric vec
+    # Convert lty to numeric vec
     numlty <- switch(lty,
                      solid = 0,
-                                        # These numbers taken from ?par
+                     # These numbers taken from ?par
                      dashed = c(4, 4),
                      dotted = c(1, 3),
                      dotdash = c(1, 3, 4, 3),
                      longdash = c(7, 3),
                      twodash = c(2, 2, 6, 2),
-                                        # Otherwise we're a hex string
+                     # Otherwise we're a hex string
                      as.numeric(as.hexmode(strsplit(lty, "")[[1]])))
-                                        # Scale by lwd
+    # Scale by lwd
     scaledlty <- numlty * lwd
-                                        # Convert to SVG stroke-dasharray
-                                        # string
-    paste(ifelse(scaledlty == 0,
-                 "none",
-                 round(scaledlty, 2)),
+
+    # Convert to SVG stroke-dasharray string
+    paste(ifelse(scaledlty == 0,"none",round(scaledlty, 2)),
           collapse=",")
 }
 
-lsegments <- function(lat1, lon1, lat2, lon2, col = "black", lty = 1, lwd = 1, map=.cache$last.map){
+lsegments <- function(x1,y1,x2,y2, col = "black",lty = 1, lwd = 1,
+                      lat1=y1,lon1=x1,lat2=y2,lon2=x2,map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat1), length(lon1), length(lat2), length(lon2))
 
@@ -80,17 +92,22 @@ lsegments <- function(lat1, lon1, lat2, lon2, col = "black", lty = 1, lwd = 1, m
         lon2 <- rep(lon2, length.out=max(ls))
     }
     col <- .mapColor(col, 1)
-    if (length(lty) > 1 && length(lty) != max(ls)) lty <- rep(lty, length.out=max(ls))
-    if (length(lwd) > 1 && length(lwd) != max(ls)) lwd <- rep(lwd, length.out=max(ls))
+    if (length(lty) > 1 && length(lty) != max(ls)){
+        lty <- rep(lty, length.out=max(ls))
+    }
+    if (length(lwd) > 1 && length(lwd) != max(ls)){
+        lwd <- rep(lwd, length.out=max(ls))
+    }
 
-    .cache$ocaps$segments(map$div, lat1, lon1, lat2, lon2, col$col, devLtyToSVG(lty, lwd), lwd)
+    .cache$ocaps$segments(map$div, lat1, lon1, lat2, lon2, col$col,
+                          devLtyToSVG(lty, lwd), lwd)
     invisible(map)
 }
 
 
 
-lpolyline <- function(lat, lon, col = "black", lty = 1, lwd = 1,
-                      map=.cache$last.map){
+lpolyline <- function(x,y, col = "black", lty = 1, lwd = 1,
+                      lat=y,lon=x,map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
 
@@ -109,7 +126,8 @@ lpolyline <- function(lat, lon, col = "black", lty = 1, lwd = 1,
 
 
 
-lmarkers <- function(lat, lon, popup=NULL, iconurl=NULL, clickfunc=NULL,
+lmarkers <- function(x, y, popup=NULL, iconurl=NULL, clickfunc=NULL,
+                     lat=y, lon=x,
                      map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
@@ -121,8 +139,8 @@ lmarkers <- function(lat, lon, popup=NULL, iconurl=NULL, clickfunc=NULL,
     invisible(map)
 }
 
-lpolygon <- function(lat, lon, popup=NULL, color='red', fillColor=color,
-                     weight=5, map=.cache$last.map) {
+lpolygon <- function(x, y, popup=NULL, color='red', fillColor=color,
+                     weight=5, lat=y, lon=x,map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
 
@@ -139,18 +157,20 @@ lpolygon <- function(lat, lon, popup=NULL, color='red', fillColor=color,
 }
 
 #Animations
-lanimatedPolyline <- function(lat,lon,durations,maxpts=0,
-                              stepsize=33,delay=0,
+lanimatedPolyline <- function(x,y,durations,maxpts=0,
+                              stepsize=33,delay=0, col="blue",
+                              lty=1, lwd=1, lat=y,lon=x,
                               map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
 
-    .cache$ocaps$animatedPolyline(map$div,lat,lon,durations,maxpts,
-                                  stepsize,delay)
+    .cache$ocaps$animatedPolyline(map$div,lat,lon,durations, maxpts,
+                                  stepsize,delay,col,devLtyToSVG(lty, lwd),
+                                  lwd)
     invisible(map)
 }
 
-lanimatedMarker <- function(lat,lon,durations,stepsize=33,delay=0,
-                            map=.cache$last.map){
+lanimatedMarker <- function(x,y,durations,stepsize=33,delay=0,
+                            lat=y,lon=x,map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
 
     .cache$ocaps$animatedMarker(map$div,lat,lon,durations,stepsize,delay)

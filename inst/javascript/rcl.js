@@ -249,13 +249,21 @@ function _genSteps (lat, lon, durations, stepsize) {
         },
 
         animatedPolyline: function(div,lat,lon,durations,maxpts,
-                                   stepsize,delay,k){
+                                   stepsize,delay,col,lty,lwd,k){
             stepsize = stepsize || 1000.0/30;
             delay = delay || 1000;
 
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
-            var pl = L.polyline([[lat[0],lon[0]]]);
+            
+            var i=0;
+            var opts={
+                color: col.charAt ? col : col[i],
+                dashArray: lty.charAt ? lty : lty[i],
+                weight: lwd.length ? lwd[i] : lwd
+            };                
+
+            var pl = L.polyline([[lat[0],lon[0]]],opts);
             pl.addTo(map);
 
             var s = _genSteps(lat,lon,durations,stepsize);
