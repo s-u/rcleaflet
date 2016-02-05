@@ -21,11 +21,20 @@ require.config({
     }
 });
 
-function initMap(L, div, lat, lon, zoom, k) {
+function initMap(L, div, lat, lon, zoom, xlim,ylim, k) {
     loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css');
     $(div).resizable({stop: function() { map.invalidateSize(); }});
-    var map = L.map($(div)[0]).setView([lat,lon], zoom);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+    var map = L.map($(div)[0]);
+    
+    if(xlim,ylim){ //fit to bbox
+        map.fitBounds([[ylim[0],xlim[0]],[ylim[1],xlim[1]]]);
+    }
+    else{ //zoom to lat,lon 
+        map.setView([lat,lon], zoom);
+    }
+
+    //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+    L.tileLayer('http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png')
         .addTo(map);
     
     if (!window.rcleaflet) window.rcleaflet = {};
@@ -53,17 +62,16 @@ function _genSteps (lat, lon, durations, stepsize) {
 
 (function(){
     return {
-        map:function(div, lat, lon, zoom, k){
+        map:function(div, lat, lon, zoom, xlim,ylim, k){
             // this serves as an init function,
             // it works because it really blocks
-
             try{
                 var L = window.rcleaflet[div].L;
-                initMap(L, div, lat, lon, zoom, k);
+                initMap(L,div,lat,lon,zoom,xlim,ylim,k);
             }
             catch(e){ // Load Leaflet
                 require(['leaflet'],function(L){
-                    initMap(L, div, lat, lon, zoom, k);
+                    initMap(L,div,lat,lon,zoom,xlim,ylim,k);
                 });
             }
         },
