@@ -21,7 +21,7 @@ require.config({
     }
 });
 
-function initMap(L, div, lat, lon, zoom, xlim,ylim, k) {
+function initMap(L, div, lat, lon, zoom, xlim, ylim, eventfunc, k) {
     loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css');
     $(div).resizable({stop: function() { map.invalidateSize(); }});
     var map = L.map($(div)[0]);
@@ -33,16 +33,24 @@ function initMap(L, div, lat, lon, zoom, xlim,ylim, k) {
         map.setView([lat,lon], zoom);
     }
 
+    //Register callbacks
+    for(var e in eventfunc){
+        map.on(e, makeEventFunc(eventfunc[e],map));
+    }
+
     //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
     L.tileLayer('http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png')
         .addTo(map);
     
     if (!window.rcleaflet) window.rcleaflet = {};
-    window.rcleaflet[div] = { "L":L, "map":map };
+    window.rcleaflet[div] = { 
+        'L':L, 'map':map, 'points':[], 'polylines':[],
+        'segments':[], 'polygons': [], 'markers':[]
+    };
     
     k(null, div);
 }
-    
+
 function _genSteps (lat, lon, durations, stepsize) {
     var allsteps = [];
     for(var i=0; i< lat.length-1; i++){
@@ -60,24 +68,57 @@ function _genSteps (lat, lon, durations, stepsize) {
     return allsteps;
 }
 
+function makeEventFunc(f,obj) {
+    return function(){
+        f(function(err,res){
+            console.log('complete callback',obj,err,res);
+        });
+    };
+};
+
 (function(){
     return {
-        map:function(div, lat, lon, zoom, xlim,ylim, k){
+        map:function(div, lat, lon, zoom, xlim, ylim, eventfunc, k){
             // this serves as an init function,
             // it works because it really blocks
             try{
                 var L = window.rcleaflet[div].L;
-                initMap(L,div,lat,lon,zoom,xlim,ylim,k);
+                initMap(L,div,lat,lon,zoom,xlim,ylim,eventfunc,k);
             }
             catch(e){ // Load Leaflet
                 require(['leaflet'],function(L){
-                    initMap(L,div,lat,lon,zoom,xlim,ylim,k);
+                    initMap(L,div,lat,lon,zoom,xlim,ylim,eventfunc,k);
                 });
             }
         },
 
+        getCurrentView: function(div, k){
+            var L = window.rcleaflet[div].L;
+            var map = window.rcleaflet[div].map;
+            var b = map.getBounds();
+            var z = map.getZoom();
+            var ne = b.getNorthEast();
+            var sw = b.getSouthWest();
+
+            k(null, {
+                zoom: z,
+                ylim:[sw.lat,ne.lat],
+                xlim:[sw.lng,ne.lng]
+            });          
+        },
+        
+        removePolygons: function(div,k){ //temp function
+            var L = window.rcleaflet[div].L;
+            var map = window.rcleaflet[div].map;
+            
+            window.rcleaflet[div].polygons.forEach(function(d){
+                map.removeLayer(d);
+            });
+            k(null,true);
+        },
+
         points:function(div, lat, lon, col, fill, colA, fillA, rad, lwd, 
-                        popup, k) {
+                        popup, eventfunc, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
             if (!lat.length) {
@@ -100,8 +141,15 @@ function _genSteps (lat, lon, durations, stepsize) {
                 if (popup && popup[i]){
                     c.bindPopup(popup[i]);
                 }
+
+                //Register callbacks
+                for(var e in eventfunc){
+                    map.on(e, makeEventFunc(eventfunc[e],c));
+                }
                 c.addTo(map);
+                window.rcleaflet[div].points.push(c);
             }
+
             k(null, true);
         },
         
@@ -124,14 +172,16 @@ function _genSteps (lat, lon, durations, stepsize) {
                     dashArray: lty.charAt ? lty : lty[i],
                     weight: lwd.length ? lwd[i] : lwd
                 };                
-                L.polyline([[lat1[i],lon1[i]],
-                            [lat2[i],lon2[i]]],opts).addTo(map);
+                var pl = L.polyline([[lat1[i],lon1[i]],
+                                     [lat2[i],lon2[i]]],opts);
+                pl.addTo(map);
+                window.rcleaflet[div].polylines.push(pl);
             }
             k(null, true);
         },
         
         markers:function(div, lat, lon, popup,iconurl,
-                         clickfunc,k) {
+                         eventfunc,k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
             
@@ -155,7 +205,7 @@ function _genSteps (lat, lon, durations, stepsize) {
             for (var i = 0; i < lat.length; i++){
                 var myicon= new L.Icon.Default();
                 if(iconurl && iconurl[i]){
-                   myicon=L.icon({iconUrl:iconurl[i]});
+                    myicon=L.icon({iconUrl:iconurl[i]});
                 }
 
                 var m = L.marker([lat[i], lon[i]],{icon:myicon});
@@ -163,15 +213,13 @@ function _genSteps (lat, lon, durations, stepsize) {
                 if (popup && popup[i]){
                     m.bindPopup(popup[i]);
                 }
+                
+                //Register callbacks
+                for(var e in eventfunc){
+                    m.on(e, makeEventFunc(eventfunc[e],m));
+                }
                 m.addTo(map);
-            }
-
-            if(clickfunc){
-                m.on('click',function(){
-                    clickfunc(function(err,res){
-                        console.log('complete callback',res);
-                    });
-                });
+                window.rcleaflet[div].markers.push(m);
             }
 
             k(null, true);
@@ -191,7 +239,10 @@ function _genSteps (lat, lon, durations, stepsize) {
                 weight: lwd.length ? lwd[i] : lwd
             };                
 
-            L.polyline(points, opts).addTo(map);
+            var pl = L.polyline(points, opts);
+            pl.addTo(map);
+            window.rcleaflet[div].polylines.push(pl);
+
             k(null, true);
         },
 
@@ -245,14 +296,16 @@ function _genSteps (lat, lon, durations, stepsize) {
             }
 
             var mp=L.multiPolygon(boundaries, {color: color,
-                                        opacity: opacity,
-                                        fillColor: fillColor,
-                                        fillOpacity: fillOpacity,
-                                        weight: weight });
+                                               opacity: opacity,
+                                               fillColor: fillColor,
+                                               fillOpacity: fillOpacity,
+                                               weight: weight });
             if(popup){
                 mp.bindPopup(popup);
             }
             mp.addTo(map);
+            window.rcleaflet[div].polygons.push(mp);
+            
             k(null, true);
         },
 

@@ -1,7 +1,7 @@
 .cache <- new.env(FALSE, emptyenv())
 
 lmap <- function(x=NULL,y=NULL,zoom=NULL,where=NULL,xlim=NULL,ylim=NULL,
-                 width=800, height=600, lat=y,lon=x) {
+                 width=800, height=600,eventfunc=NULL,lat=y,lon=x) {
     if (missing(where)) {
         where <- paste0("rc_map_", as.integer(runif(1)*1e6))
         rcloud.html.out(paste0("<div id='", where,"' style='width:",
@@ -14,10 +14,13 @@ lmap <- function(x=NULL,y=NULL,zoom=NULL,where=NULL,xlim=NULL,ylim=NULL,
                              warn=FALSE), collapse='\n')
         .cache$ocaps <- rcloud.install.js.module("rcleaflet", x, TRUE)
     }
-    .cache$last.map <- structure(list(div=.cache$ocaps$map(where,lat,lon,
-                                                           zoom,
-                                                           xlim,ylim)),
-                                 class="RCloudLeaflet")
+
+    map <- structure(list(div=.cache$ocaps$map(where,lat,lon,zoom,
+                                               xlim,ylim,eventfunc)),
+                     class="RCloudLeaflet")
+
+    .cache$last.map <- map
+    #return(map)
 }
 
 ## map R colors to RGB space, also re-cycle as needed and split off RGB and A
@@ -34,7 +37,8 @@ lmap <- function(x=NULL,y=NULL,zoom=NULL,where=NULL,xlim=NULL,ylim=NULL,
 }
 
 lpoints <- function(x,y,col="black", bg="transparent", cex=1, lwd=1,
-                    popup=NULL,..., lat=y,lon=x,map=.cache$last.map) {
+                    popup=NULL,eventfunc=NULL,lat=y,lon=x,
+                    map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
     if (diff(ls)) { ## recycle
@@ -54,7 +58,7 @@ lpoints <- function(x,y,col="black", bg="transparent", cex=1, lwd=1,
     }
     
     .cache$ocaps$points(map$div, lat, lon, col$col, bg$col, col$alpha,
-                        bg$alpha, cex, lwd, popup)
+                        bg$alpha, cex, lwd, popup, eventfunc)
     invisible(map)
 }
 
@@ -116,26 +120,23 @@ lpolyline <- function(x,y, col = "black", lty = 1, lwd = 1,
         lon <- rep(lon, length.out=max(ls))
     }
     col <- .mapColor(col, 1)
-    if (length(lty) > 1 && length(lty) != max(ls)) lty <- rep(lty, length.out=max(ls))
-    if (length(lwd) > 1 && length(lwd) != max(ls)) lwd <- rep(lwd, length.out=max(ls))
+    if (length(lty) > 1 && length(lty) != max(ls)) lty <- rep(lty,length.out=max(ls))
+    if (length(lwd) > 1 && length(lwd) != max(ls)) lwd <- rep(lwd,length.out=max(ls))
 
     .cache$ocaps$polyline(map$div, lat, lon, col$col,
                           devLtyToSVG(lty, lwd), lwd)
     invisible(map)
 }
 
-
-
-lmarkers <- function(x, y, popup=NULL, iconurl=NULL, clickfunc=NULL,
-                     lat=y, lon=x,
-                     map=.cache$last.map) {
+lmarkers <- function(x, y, popup=NULL, iconurl=NULL,eventfunc=NULL,
+                     lat=y, lon=x,map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
     if (diff(ls)) { ## recycle
         lat <- rep(lat, length.out=max(ls))
         lon <- rep(lon, length.out=max(ls))
     }
-    .cache$ocaps$markers(map$div, lat, lon, popup, iconurl, clickfunc)
+    .cache$ocaps$markers(map$div, lat, lon, popup, iconurl, eventfunc)
     invisible(map)
 }
 
@@ -175,4 +176,9 @@ lanimatedMarker <- function(x,y,durations,stepsize=33,delay=0,
 
     .cache$ocaps$animatedMarker(map$div,lat,lon,durations,stepsize,delay)
     invisible(map)
+}
+
+getCurrentView <- function(map=.cache$last.map){
+    ret <-.cache$ocaps$getCurrentView(map$div)
+    return(list(xlim=unlist(ret$xlim),ylim=unlist(ret$ylim),zoom=ret$zoom))
 }
