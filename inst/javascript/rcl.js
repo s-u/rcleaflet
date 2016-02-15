@@ -25,11 +25,11 @@ function initMap(L, div, lat, lon, zoom, xlim, ylim, eventfunc, k) {
     loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css');
     $(div).resizable({stop: function() { map.invalidateSize(); }});
     var map = L.map($(div)[0]);
-    
+
     if(xlim,ylim){ //fit to bbox
         map.fitBounds([[ylim[0],xlim[0]],[ylim[1],xlim[1]]]);
     }
-    else{ //zoom to lat,lon 
+    else{ //zoom to lat,lon
         map.setView([lat,lon], zoom);
     }
 
@@ -41,13 +41,13 @@ function initMap(L, div, lat, lon, zoom, xlim, ylim, eventfunc, k) {
     //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
     L.tileLayer('http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png')
         .addTo(map);
-    
+
     if (!window.rcleaflet) window.rcleaflet = {};
-    window.rcleaflet[div] = { 
+    window.rcleaflet[div] = {
         'L':L, 'map':map, 'points':[], 'polylines':[],
         'segments':[], 'polygons': [], 'markers':[]
     };
-    
+
     k(null, div);
 }
 
@@ -77,7 +77,7 @@ function makeEventFunc(f,obj) {
 };
 
 (function(){
-    return {
+    return{
         map:function(div, lat, lon, zoom, xlim, ylim, eventfunc, k){
             // this serves as an init function,
             // it works because it really blocks
@@ -104,20 +104,22 @@ function makeEventFunc(f,obj) {
                 zoom: z,
                 ylim:[sw.lat,ne.lat],
                 xlim:[sw.lng,ne.lng]
-            });          
+            });
         },
-        
+
         removePolygons: function(div,k){ //temp function
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
-            
+
             window.rcleaflet[div].polygons.forEach(function(d){
                 map.removeLayer(d);
             });
+
+            window.rcleaflet[div].polygons.length = 0;
             k(null,true);
         },
 
-        points:function(div, lat, lon, col, fill, colA, fillA, rad, lwd, 
+        points:function(div, lat, lon, col, fill, colA, fillA, rad, lwd,
                         popup, eventfunc, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
@@ -135,7 +137,7 @@ function makeEventFunc(f,obj) {
                     opacity: colA.length ? colA[i] : colA,
                     weight: lwd.length ? lwd[i] : lwd
                 };
-                var r = rad.length? rad[i]:rad; 
+                var r = rad.length? rad[i]:rad;
                 var c = L.circle([lat[i], lon[i]], r , opts);
 
                 if (popup && popup[i]){
@@ -152,7 +154,7 @@ function makeEventFunc(f,obj) {
 
             k(null, true);
         },
-        
+
         segments:function(div, lat1, lon1, lat2, lon2, col, lty, lwd, k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
@@ -171,7 +173,7 @@ function makeEventFunc(f,obj) {
                     color: col.charAt ? col : col[i],
                     dashArray: lty.charAt ? lty : lty[i],
                     weight: lwd.length ? lwd[i] : lwd
-                };                
+                };
                 var pl = L.polyline([[lat1[i],lon1[i]],
                                      [lat2[i],lon2[i]]],opts);
                 pl.addTo(map);
@@ -179,41 +181,57 @@ function makeEventFunc(f,obj) {
             }
             k(null, true);
         },
-        
-        markers:function(div, lat, lon, popup,iconurl,
+
+        markers:function(div, lat, lon, popup,iconurl,html,
                          eventfunc,k) {
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
-            
+
             if (!lat.length){ //make them arrays
                 lat = [lat];
                 lon = [lon];
             }
-            
+
             if(popup && !Array.isArray(popup)){
-                popup=Array.apply(null,Array(lat.length)).map(function(d){ 
+                popup=Array.apply(null,Array(lat.length)).map(function(d){
                     return popup;
                 });
             }
-            
+
             if(iconurl && !Array.isArray(iconurl)){
-                iconurl=Array.apply(null,Array(lat.length)).map(function(d){ 
+                iconurl=Array.apply(null,Array(lat.length)).map(function(d){
                     return iconurl;
                 });
             }
-            
+
+            if(html && !Array.isArray(html)){
+                html=Array.apply(null,Array(lat.length)).map(function(d){
+                    return html;
+                });
+            }
+
             for (var i = 0; i < lat.length; i++){
-                var myicon= new L.Icon.Default();
+                var mydiv= {icon: new L.Icon.Default()};
                 if(iconurl && iconurl[i]){
-                    myicon=L.icon({iconUrl:iconurl[i]});
+                    mydiv.icon=L.icon({iconUrl:iconurl[i]});
                 }
 
-                var m = L.marker([lat[i], lon[i]],{icon:myicon});
+                if(html && html[i]){
+                    mydiv=  {
+                        icon: L.divIcon({
+                            className: 'label',
+                            html: html[i],
+                            iconSize: [100, 40]
+                        })
+                    };
+                }
+
+                var m = L.marker([lat[i], lon[i]], mydiv);
 
                 if (popup && popup[i]){
                     m.bindPopup(popup[i]);
                 }
-                
+
                 //Register callbacks
                 for(var e in eventfunc){
                     m.on(e, makeEventFunc(eventfunc[e],m));
@@ -237,7 +255,7 @@ function makeEventFunc(f,obj) {
                 color: col.charAt ? col : col[i],
                 dashArray: lty.charAt ? lty : lty[i],
                 weight: lwd.length ? lwd[i] : lwd
-            };                
+            };
 
             var pl = L.polyline(points, opts);
             pl.addTo(map);
@@ -262,7 +280,7 @@ function makeEventFunc(f,obj) {
                         if (i >= arr.length-1){ //
                             return p;
                         }
-                        
+
                         return p + (arr[i+1].lng - arr[i].lng )*
                             (arr[i+1].lat+arr[i].lat);
                     },0);
@@ -305,7 +323,7 @@ function makeEventFunc(f,obj) {
             }
             mp.addTo(map);
             window.rcleaflet[div].polygons.push(mp);
-            
+
             k(null, true);
         },
 
@@ -316,13 +334,13 @@ function makeEventFunc(f,obj) {
 
             var L = window.rcleaflet[div].L;
             var map = window.rcleaflet[div].map;
-            
+
             var i=0;
             var opts={
                 color: col.charAt ? col : col[i],
                 dashArray: lty.charAt ? lty : lty[i],
                 weight: lwd.length ? lwd[i] : lwd
-            };                
+            };
 
             var pl = L.polyline([[lat[0],lon[0]]],opts);
             pl.addTo(map);
@@ -401,6 +419,84 @@ function makeEventFunc(f,obj) {
                     }
                 },stepsize);
             },delay);
+            k(null, true);
+        },
+        get batchProcess() {
+            var rcleaflet = this;
+            return function(div,func_arg_dict,k){
+                for(var func_name in func_arg_dict){
+                    switch(func_name){
+                    case 'polygon':
+                        for(var i in func_arg_dict[func_name]){
+                            if (i.startsWith('r_')){
+                                continue;
+                            }
+                            var d = func_arg_dict[func_name][i];
+                            var lat = d.lat || null;
+                            var lon = d.lon || null;
+                            var popup = d.popup || null;
+                            var color = d.color || null;
+                            var opacity = d.opacity || null;
+                            var fillColor = d.fillColor || null;
+                            var fillOpacity = d.fillOpacity || null;
+                            var weight = d.weight || null;
+
+                            rcleaflet.polygon(div, lat, lon, popup, color,
+                                              opacity,fillColor, fillOpacity,
+                                              weight, function(a,b){});
+                        };
+                        break;
+                    }
+                }
+                k(null,true);
+            };
+        },
+
+        legend: function(div, labels, colors,k){
+            var L = window.rcleaflet[div].L;
+            var map = window.rcleaflet[div].map;
+                        
+            var legend = L.control({position: 'bottomright'});
+            
+            legend.onAdd = function (map) {
+                var div = L.DomUtil.create('div', 'info legend');
+
+                // loop through our density intervals and 
+                // generate a label with a colored square for each interval
+                for (var i = 0; i < colors.length; i++) {
+                    div.innerHTML +=
+                    '<i style="background:' + colors[i] + 
+                        '"></i> ' +
+                        labels[i] + (labels[i + 1] ? '&ndash;' + 
+                                     labels[i + 1] + '<br>' : '+');
+                }
+                
+                return div;
+            };            
+
+            legend.addTo(map);
+
+            //set css
+            $('.legend').css({
+                'line-height':  '18px',
+                'color': '#555'
+            });
+
+            
+            $('.legend i').css({
+                width: '18px',
+                height: '18px',
+                'float': 'left',
+                'margin-right': '8px',
+                opacity: 0.7
+            });
+
+            $('.info').css({
+                padding: '5px 5px',
+                background:'white',
+                'box-shadow': '0 0 15px rgba(0,0,0,0.2)',
+                'border-radius': '3px'
+            });
             k(null, true);
         }
     };

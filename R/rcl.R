@@ -1,3 +1,6 @@
+
+
+
 .cache <- new.env(FALSE, emptyenv())
 
 lmap <- function(x=NULL,y=NULL,zoom=NULL,where=NULL,xlim=NULL,ylim=NULL,
@@ -128,7 +131,7 @@ lpolyline <- function(x,y, col = "black", lty = 1, lwd = 1,
     invisible(map)
 }
 
-lmarkers <- function(x, y, popup=NULL, iconurl=NULL,eventfunc=NULL,
+lmarkers <- function(x, y, popup=NULL, iconurl=NULL, html=NULL, eventfunc=NULL,
                      lat=y, lon=x,map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
@@ -136,7 +139,7 @@ lmarkers <- function(x, y, popup=NULL, iconurl=NULL,eventfunc=NULL,
         lat <- rep(lat, length.out=max(ls))
         lon <- rep(lon, length.out=max(ls))
     }
-    .cache$ocaps$markers(map$div, lat, lon, popup, iconurl, eventfunc)
+    .cache$ocaps$markers(map$div, lat, lon, popup, iconurl, html, eventfunc)
     invisible(map)
 }
 
@@ -181,4 +184,17 @@ lanimatedMarker <- function(x,y,durations,stepsize=33,delay=0,
 getCurrentView <- function(map=.cache$last.map){
     ret <-.cache$ocaps$getCurrentView(map$div)
     return(list(xlim=unlist(ret$xlim),ylim=unlist(ret$ylim),zoom=ret$zoom))
+}
+
+batchLeaflet <- function(plist,map=.cache$last.map) {
+    if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
+
+    .cache$ocaps$batchProcess(map$div, plist)
+    invisible(map)
+}
+
+llegend <- function(labels, colors, map=.cache$last.map) {
+    if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
+    .cache$ocaps$legend(map$div, labels,colors)
+    invisible(map)
 }
