@@ -3,8 +3,8 @@
 
 .cache <- new.env(FALSE, emptyenv())
 
-lmap <- function(x=NULL,y=NULL,zoom=NULL,where=NULL,xlim=NULL,ylim=NULL,
-                 width=800, height=600,eventfunc=NULL,lat=y,lon=x) {
+lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
+                 width=800, height=600, eventfunc=NULL, lat=y, lon=x) {
     if (missing(where)) {
         where <- paste0("rc_map_", as.integer(runif(1)*1e6))
         rcloud.html.out(paste0("<div id='", where,"' style='width:",
@@ -12,10 +12,10 @@ lmap <- function(x=NULL,y=NULL,zoom=NULL,where=NULL,xlim=NULL,ylim=NULL,
         where <- paste0("#", where)
     }
     if (is.null(.cache$ocaps)) {
-        x <- paste(readLines(system.file("javascript", "rcl.js",
+        .script <- paste(readLines(system.file("javascript", "rcl.js",
                                          package="rcleaflet"),
                              warn=FALSE), collapse='\n')
-        .cache$ocaps <- rcloud.install.js.module("rcleaflet", x, TRUE)
+        .cache$ocaps <- rcloud.install.js.module("rcleaflet", .script, TRUE)
     }
 
     map <- structure(list(div=.cache$ocaps$map(where,lat,lon,zoom,
