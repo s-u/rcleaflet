@@ -143,9 +143,12 @@ lmarkers <- function(x, y, popup=NULL, iconurl=NULL, html=NULL, eventfunc=NULL,
     invisible(map)
 }
 
-lpolygon <- function(x, y, popup=NULL, color='red', fillColor=color,
-                     weight=5, lat=y, lon=x,map=.cache$last.map) {
+lpolygon <- function(x, y, popup=NULL, col=NA, border=NULL,
+                     lwd, lat=y, lon=x, map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
+    if (is.null(border)) border <- par("fg")
+    if (is.null(col)) col <- NA
+    if (missing(lwd)) lwd <- par("lwd")
     ls <- c(length(lat), length(lon))
 
     if (diff(ls)) { ## recycle
@@ -153,10 +156,10 @@ lpolygon <- function(x, y, popup=NULL, color='red', fillColor=color,
         lon <- rep(lon, length.out=max(ls))
     }
 
-    col <- .mapColor(color, 1)
-    fill <- .mapColor(fillColor, 1)
+    col <- .mapColor(border, 1)
+    fill <- .mapColor(color, 1)
     .cache$ocaps$polygon(map$div, lat, lon, popup, col$col, col$alpha,
-                         fill$col, fill$alpha, weight)
+                         fill$col, fill$alpha, lwd)
     invisible(map)
 }
 
