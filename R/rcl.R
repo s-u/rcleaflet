@@ -1,6 +1,3 @@
-
-
-
 .cache <- new.env(FALSE, emptyenv())
 
 lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
@@ -87,7 +84,7 @@ devLtyToSVG <- function(lty, lwd) {
           collapse=",")
 }
 
-lsegments <- function(x1,y1,x2,y2, col = "black",lty = 1, lwd = 1,
+lsegments <- function(x1,y1,x2,y2, col="black",lty=1, lwd=1,
                       lat1=y1,lon1=x1,lat2=y2,lon2=x2,map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat1), length(lon1), length(lat2), length(lon2))
@@ -113,7 +110,7 @@ lsegments <- function(x1,y1,x2,y2, col = "black",lty = 1, lwd = 1,
 
 
 
-lpolyline <- function(x,y, col = "black", lty = 1, lwd = 1,
+lpolyline <- function(x,y, col="black", lty=1, lwd=1,
                       lat=y,lon=x,map=.cache$last.map){
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
     ls <- c(length(lat), length(lon))
@@ -143,11 +140,9 @@ lmarkers <- function(x, y, popup=NULL, iconurl=NULL, html=NULL, eventfunc=NULL,
     invisible(map)
 }
 
-lpolygon <- function(x, y, popup=NULL, col=NA, border=NULL,
-                     lwd, lat=y, lon=x, map=.cache$last.map) {
+lpolygon <- function(x, y, popup=NULL, col="black", bg="transparent",
+                     lwd=1, lat=y, lon=x, map=.cache$last.map) {
     if (is.null(map$div)) stop("invalid map object - not a Leaflet map")
-    if (is.null(border)) border <- par("fg")
-    if (is.null(col)) col <- NA
     if (missing(lwd)) lwd <- par("lwd")
     ls <- c(length(lat), length(lon))
 
@@ -156,9 +151,9 @@ lpolygon <- function(x, y, popup=NULL, col=NA, border=NULL,
         lon <- rep(lon, length.out=max(ls))
     }
 
-    col <- .mapColor(border, 1)
-    fill <- .mapColor(color, 1)
-    .cache$ocaps$polygon(map$div, lat, lon, popup, col$col, col$alpha,
+    color <- .mapColor(col, 1)
+    fill <- .mapColor(bg, 1)
+    .cache$ocaps$polygon(map$div, lat, lon, popup, color$col, color$alpha,
                          fill$col, fill$alpha, lwd)
     invisible(map)
 }
