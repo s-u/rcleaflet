@@ -10,17 +10,17 @@ lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
     }
     if (is.null(.cache$ocaps)) {
         .script <- paste(readLines(system.file("javascript", "rcl.js",
-                                         package="rcleaflet"),
-                             warn=FALSE), collapse='\n')
+                                               package="rcleaflet"),
+                                   warn=FALSE), collapse='\n')
         .cache$ocaps <- rcloud.install.js.module("rcleaflet", .script, TRUE)
     }
-
+    
     map <- structure(list(div=.cache$ocaps$map(where,lat,lon,zoom,
                                                xlim,ylim,eventfunc)),
                      class="RCloudLeaflet")
 
     .cache$last.map <- map
-    #return(map)
+    invisible(map)
 }
 
 ## map R colors to RGB space, also re-cycle as needed and split off RGB and A
@@ -34,6 +34,11 @@ lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
         l$alpha <- rep(l$alpha, length.out=n)
     }
     l
+}
+#remove all the layers...
+lremoveAll <-function(map=.cache$last.map){
+    ret = .cache$ocaps$removeAll(.cache$last.map$div)
+    invisible(ret)
 }
 
 lpoints <- function(x,y,col="black", bg="transparent", cex=1, lwd=1,
@@ -136,8 +141,7 @@ lmarkers <- function(x, y, popup=NULL, iconurl=NULL, html=NULL, eventfunc=NULL,
         lat <- rep(lat, length.out=max(ls))
         lon <- rep(lon, length.out=max(ls))
     }
-    .cache$ocaps$markers(map$div, lat, lon, popup, iconurl, html, eventfunc)
-    invisible(map)
+    ret=.cache$ocaps$markers(map$div,lat,lon,popup,iconurl,html,eventfunc)
 }
 
 lpolygon <- function(x, y, popup=NULL, border="black", col=NA,

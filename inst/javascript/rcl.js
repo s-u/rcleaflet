@@ -22,7 +22,9 @@ require.config({
 });
 
 function initMap(L, div, lat, lon, zoom, xlim, ylim, eventfunc, k) {
-    loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css');
+    var css='https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css';
+    loadCss(css);
+
     $(div).resizable({stop: function() { map.invalidateSize(); }});
     var map = L.map($(div)[0]);
 
@@ -76,6 +78,16 @@ function makeEventFunc(f,obj) {
     };
 };
 
+function _remove(div,type){
+    var L = window.rcleaflet[div].L;
+    var map = window.rcleaflet[div].map;
+    
+    window.rcleaflet[div][type].forEach(function(d){
+        map.removeLayer(d);
+    });
+    window.rcleaflet[div][type].length = 0;
+}
+
 (function(){
     return{
         map:function(div, lat, lon, zoom, xlim, ylim, eventfunc, k){
@@ -114,8 +126,18 @@ function makeEventFunc(f,obj) {
             window.rcleaflet[div].polygons.forEach(function(d){
                 map.removeLayer(d);
             });
-
             window.rcleaflet[div].polygons.length = 0;
+            k(null,true);
+        },
+        
+        removeAll: function(div,k){
+            var alltypes = ['points','polygons','segments',
+                            'polylines','markers'];
+
+            var rcl = this;
+            alltypes.forEach(function(d){ 
+                _remove(div,d);
+            });
             k(null,true);
         },
 
@@ -197,7 +219,7 @@ function makeEventFunc(f,obj) {
                     return popup;
                 });
             }
-
+            
             if(iconurl && !Array.isArray(iconurl)){
                 iconurl=Array.apply(null,Array(lat.length)).map(function(d){
                     return iconurl;
@@ -236,6 +258,7 @@ function makeEventFunc(f,obj) {
                 for(var e in eventfunc){
                     m.on(e, makeEventFunc(eventfunc[e],m));
                 }
+
                 m.addTo(map);
                 window.rcleaflet[div].markers.push(m);
             }
