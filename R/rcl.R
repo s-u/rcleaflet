@@ -37,7 +37,7 @@ lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
 }
 #remove all the layers...
 lremoveAll <-function(map=.cache$last.map){
-    ret = .cache$ocaps$removeAll(.cache$last.map$div)
+    ret = .cache$ocaps$removeAll(map$div)
     invisible(ret)
 }
 
