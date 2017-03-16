@@ -21,7 +21,7 @@ require.config({
     }
 });
 
-function initMap(L, div, lat, lon, zoom, xlim, ylim, eventfunc, k) {
+function initMap(L, div, lat, lon, zoom, xlim, ylim, eventfunc,tilepath,k) {
     var css='https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css';
     loadCss(css);
 
@@ -41,7 +41,8 @@ function initMap(L, div, lat, lon, zoom, xlim, ylim, eventfunc, k) {
     }
 
     //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-    L.tileLayer('http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png')
+    //L.tileLayer('http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png')
+    L.tileLayer(tilepath)
         .addTo(map);
 
     if (!window.rcleaflet) window.rcleaflet = {};
@@ -90,16 +91,16 @@ function _remove(div,type){
 
 (function(){
     return{
-        map:function(div, lat, lon, zoom, xlim, ylim, eventfunc, k){
+        map:function(div, lat, lon, zoom, xlim, ylim, eventfunc, tilepath,k){
             // this serves as an init function,
             // it works because it really blocks
             try{
                 var L = window.rcleaflet[div].L;
-                initMap(L,div,lat,lon,zoom,xlim,ylim,eventfunc,k);
+                initMap(L,div,lat,lon,zoom,xlim,ylim,eventfunc,tilepath,k);
             }
             catch(e){ // Load Leaflet
                 require(['leaflet'],function(L){
-                    initMap(L,div,lat,lon,zoom,xlim,ylim,eventfunc,k);
+                    initMap(L,div,lat,lon,zoom,xlim,ylim,eventfunc,tilepath,k);
                 });
             }
         },

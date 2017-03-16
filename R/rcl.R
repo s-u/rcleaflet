@@ -1,7 +1,9 @@
 .cache <- new.env(FALSE, emptyenv())
 
 lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
-                 width=800, height=600, eventfunc=NULL, lat=y, lon=x) {
+                 width=800, height=600,
+                 tilepath='https://rcloud.research.att.com/tiles-light/{z}/{x}/{y}.png',
+                 eventfunc=NULL,lat=y, lon=x) {
     if (missing(where)) {
         where <- paste0("rc_map_", as.integer(runif(1)*1e6))
         rcloud.html.out(paste0("<div id='", where,"' style='width:",
@@ -16,7 +18,7 @@ lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
     }
     
     map <- structure(list(div=.cache$ocaps$map(where,lat,lon,zoom,
-                                               xlim,ylim,eventfunc)),
+                                               xlim,ylim,eventfunc,tilepath)),
                      class="RCloudLeaflet")
 
     .cache$last.map <- map
