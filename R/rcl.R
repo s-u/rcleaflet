@@ -9,14 +9,17 @@ lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
         rcloud.html.out(paste0("<div id='", where,"' style='width:",
                                width, "px;height:", height, "px'></div>"))
         where <- paste0("#", where)
-        Sys.sleep(2)        
+        ## wait for the div to appear before proceeding to avoid race conditions
+        ## since it's an asynchronous OOB message
+        while(is.null(rcw.attr(where,"id"))) {}
     }
+
     if (is.null(.cache$ocaps)) {
         .script <- paste(readLines(system.file("javascript", "rcl.js",
                                                package="rcleaflet"),
                                    warn=FALSE), collapse='\n')
         .cache$ocaps <- rcloud.install.js.module("rcleaflet", .script, TRUE)
-    }    
+    }
 
     map <- structure(list(div=.cache$ocaps$map(where,lat,lon,zoom,
                                                xlim,ylim,eventfunc,tilepath)),
