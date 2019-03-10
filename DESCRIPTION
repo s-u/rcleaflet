@@ -1,8 +1,8 @@
 Package: rcleaflet
 Title: Interactive maps in RCloud based on the Leaflet package
-Version: 1.0-1
-Author: Simon Urbanek <urbanek@research.att.com>
+Version: 1.0-2
+Author: Simon Urbanek <urbanek@research.att.com>, Horace Ip <ipcy@research.att.com>
 Maintainer: Simon Urbanek <urbanek@research.att.com>
 Description: Interactive maps in RCloud based on the Leaflet package
-Imports: rcloud.support, rcloud.web
+Imports: rcloud.support, rcloud.web, Rserve
 License: MIT
