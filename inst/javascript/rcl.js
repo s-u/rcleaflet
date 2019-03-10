@@ -37,7 +37,7 @@ function initMap(L, div, lat, lon, zoom, xlim, ylim, eventfunc,tilepath,k) {
 
     //Register callbacks
     for(var e in eventfunc){
-        map.on(e, makeEventFunc(eventfunc[e],map));
+        map.on(e, makeEventFunc(eventfunc[e], map, -1));
     }
 
     //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
@@ -71,10 +71,10 @@ function _genSteps (lat, lon, durations, stepsize) {
     return allsteps;
 }
 
-function makeEventFunc(f,obj) {
-    return function(){
-        f(function(err,res){
-            console.log('complete callback',obj,err,res);
+function makeEventFunc(f,obj,i) {
+    return function(ev){
+        f(i + 1, function(err,res){
+            console.log('complete callback',obj, i, ev, err, res);
         });
     };
 };
@@ -169,7 +169,7 @@ function _remove(div,type){
 
                 //Register callbacks
                 for(var e in eventfunc){
-                    map.on(e, makeEventFunc(eventfunc[e],c));
+                    map.on(e, makeEventFunc(eventfunc[e], c, i));
                 }
                 c.addTo(map);
                 window.rcleaflet[div].points.push(c);
@@ -257,7 +257,7 @@ function _remove(div,type){
 
                 //Register callbacks
                 for(var e in eventfunc){
-                    m.on(e, makeEventFunc(eventfunc[e],m));
+                    m.on(e, makeEventFunc(eventfunc[e], m, i));
                 }
 
                 m.addTo(map);

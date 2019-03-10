@@ -21,6 +21,18 @@ lmap <- function(x=NULL, y=NULL, zoom=NULL, where, xlim=NULL, ylim=NULL,
         .cache$ocaps <- rcloud.install.js.module("rcleaflet", .script, TRUE)
     }
 
+    if (length(lat) > 1 || length(lon) > 1) { ## map only takes the center, so compute it if we get points
+       rlat <- range(lat, na.rm=TRUE)
+       rlon <- range(lon, na.rm=TRUE)
+       lat <- mean(rlat)
+       lon <- mean(rlon)
+       if (is.null(zoom)) zoom <- as.integer((-log(diff(rlat)))/height * 512) ## FIXME: only y
+    }
+
+    if (is.function(eventfunc)) eventfunc <- list(click=eventfunc)
+    if (length(eventfunc)) eventfunc <- lapply(eventfunc,
+       function (f) if (is.function(f)) ocap(f) else f)
+
     map <- structure(list(div=.cache$ocaps$map(where,lat,lon,zoom,
                                                xlim,ylim,eventfunc,tilepath)),
                      class="RCloudLeaflet")
@@ -67,7 +79,11 @@ lpoints <- function(x,y,col="black", bg="transparent", cex=1, lwd=1,
     if (length(lwd) > 1 && length(lwd) != max(ls)){
         lwd <- rep(lwd, length.out=max(ls))
     }
-    
+
+    if (is.function(eventfunc)) eventfunc <- list(click=eventfunc)
+    if (length(eventfunc)) eventfunc <- lapply(eventfunc,
+       function (f) if (is.function(f)) ocap(f) else f)
+
     .cache$ocaps$points(map$div, lat, lon, col$col, bg$col, col$alpha,
                         bg$alpha, cex, lwd, popup, eventfunc)
     invisible(map)
@@ -147,7 +163,12 @@ lmarkers <- function(x, y, popup=NULL, iconurl=NULL, html=NULL, eventfunc=NULL,
         lat <- rep(lat, length.out=max(ls))
         lon <- rep(lon, length.out=max(ls))
     }
-    ret=.cache$ocaps$markers(map$div,lat,lon,popup,iconurl,html,eventfunc)
+
+    if (is.function(eventfunc)) eventfunc <- list(click=eventfunc)
+    if (length(eventfunc)) eventfunc <- lapply(eventfunc,
+       function (f) if (is.function(f)) ocap(f) else f)
+
+    invisible(.cache$ocaps$markers(map$div,lat,lon,popup,iconurl,html,eventfunc))
 }
 
 lpolygon <- function(x, y, popup=NULL, border="black", col=NA,
